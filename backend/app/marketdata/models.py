@@ -74,3 +74,8 @@ class Bar:
             raise ValidationError("high must be >= max(open, close, low)")
         if self.low > min(self.open, self.close, self.high):
             raise ValidationError("low must be <= min(open, close, high)")
+
+    @property
+    def timestamp(self) -> datetime:
+        """Canonical timestamp for the price (parsed provider_timestamp)."""
+        return self.provider_timestamp

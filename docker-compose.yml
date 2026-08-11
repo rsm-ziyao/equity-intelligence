@@ -9,6 +9,11 @@ services:
       - '5432:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U equityuser -d equitydb']
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   backend:
     build:
@@ -24,7 +29,7 @@ services:
       POSTGRES_PORT: '5432'
     depends_on:
       postgres:
-        condition: service_started
+        condition: service_healthy
     volumes:
       - ./backend:/app
 
