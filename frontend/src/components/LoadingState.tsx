@@ -1,0 +1,1 @@
+export default function LoadingState({ label = 'Loading market data' }: { label?: string }) { return <div className="state" role="status"><span className="spinner" aria-hidden="true" /><span>{label}…</span></div> }

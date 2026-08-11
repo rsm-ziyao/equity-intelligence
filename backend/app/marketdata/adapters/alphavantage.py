@@ -57,25 +57,12 @@ class AlphaVantageAdapter(MarketDataClient):
             )
 
     def get_intraday(self, symbol: str, interval: str = "1min") -> Iterable[Bar]:
-        params = {"function": "TIME_SERIES_INTRADAY", "symbol": symbol, "interval": interval, "outputsize": "compact"}
-        j = self._call(params)
-        # handle known rate-limit note
-        if "Note" in j:
-            raise ProviderRateLimitError(j["Note"])
-        # choose keys
-        key = None
-        for k in j.keys():
-            if k.startswith("Time Series"):
-                key = k
-                break
-        if key is None:
-            raise ProviderError(f"Unexpected response shape: {j}")
-        series = j[key]
-        meta = j.get("Meta Data", {})
-        return list(self._parse_time_series(meta, series, symbol))
+        raise ProviderError(
+            "Alpha Vantage intraday data is not available on the configured entitlement"
+        )
 
     def get_historical_daily(self, symbol: str, start: str | None = None, end: str | None = None) -> Iterable[Bar]:
-        params = {"function": "TIME_SERIES_DAILY_ADJUSTED", "symbol": symbol, "outputsize": "full"}
+        params = {"function": "TIME_SERIES_DAILY", "symbol": symbol, "outputsize": "compact"}
         j = self._call(params)
         if "Note" in j:
             raise ProviderRateLimitError(j["Note"])

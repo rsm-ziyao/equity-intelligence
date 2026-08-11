@@ -150,7 +150,7 @@ class StockPriceRepository:
 
     @staticmethod
     def get_latest_by_stock(session: Session, stock_id: int, limit: int = 100) -> List[StockPrice]:
-        """Retrieve latest price records for a stock.
+        """Retrieve latest persisted observations for a stock.
         
         Args:
             session: SQLAlchemy session

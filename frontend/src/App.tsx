@@ -1,31 +1,22 @@
+import { useEffect, useMemo } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
+import Dashboard from './pages/Dashboard'
+import { DEFAULT_SYMBOL, SUPPORTED_SYMBOLS } from './services/stocks'
+
 function App() {
+  const location = useLocation()
+  const navigate = useNavigate()
+  const match = location.pathname.match(/^\/stocks\/([^/]+)\/?$/i)
+  const routeSymbol = match?.[1]?.toUpperCase() ?? DEFAULT_SYMBOL
+  const symbol = useMemo(() => routeSymbol, [routeSymbol])
+  useEffect(() => { if (!match) navigate(`/stocks/${DEFAULT_SYMBOL}`, { replace: true }) }, [match, navigate])
+
   return (
-    <div style={{
-      display: 'flex',
-      minHeight: '100vh',
-      justifyContent: 'center',
-      alignItems: 'center',
-      fontFamily: 'Inter, system-ui, sans-serif',
-      padding: '1rem',
-      background: '#f5f7fb',
-    }}>
-      <div style={{
-        maxWidth: 620,
-        width: '100%',
-        padding: '2rem',
-        borderRadius: '16px',
-        background: '#ffffff',
-        boxShadow: '0 20px 50px rgba(15, 23, 42, 0.08)',
-      }}>
-        <h1 style={{ marginBottom: '1rem' }}>Equity Intelligence Platform</h1>
-        <p style={{ marginBottom: '1rem', color: '#334155' }}>
-          Welcome to the Equity Intelligence frontend starter page. The frontend is running successfully.
-        </p>
-        <p style={{ marginTop: '1rem', color: '#475569' }}>
-          This platform is designed for research and decision support, not investment advice.
-        </p>
-      </div>
-    </div>
+    <Dashboard
+      symbol={symbol}
+      supportedSymbols={SUPPORTED_SYMBOLS}
+      onSymbolChange={(nextSymbol) => navigate(`/stocks/${nextSymbol}`)}
+    />
   )
 }
 
