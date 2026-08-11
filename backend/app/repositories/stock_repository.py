@@ -165,6 +165,37 @@ class StockPriceRepository:
         ).order_by(StockPrice.timestamp.desc()).limit(limit).all()
 
     @staticmethod
+    def get_latest_for_stock(session: Session, stock_id: int) -> Optional[StockPrice]:
+        """Retrieve the single most recent price for a stock."""
+        return session.query(StockPrice).filter(
+            StockPrice.stock_id == stock_id
+        ).order_by(
+            StockPrice.timestamp.desc(),
+            StockPrice.id.desc(),
+        ).first()
+
+    @staticmethod
+    def get_for_stock(
+        session: Session,
+        stock_id: int,
+        start_datetime: Optional[datetime] = None,
+        end_datetime_exclusive: Optional[datetime] = None,
+        limit: int = 100,
+    ) -> List[StockPrice]:
+        """Retrieve chronological prices for a stock with optional bounds."""
+        query = session.query(StockPrice).filter(StockPrice.stock_id == stock_id)
+
+        if start_datetime is not None:
+            query = query.filter(StockPrice.timestamp >= start_datetime)
+        if end_datetime_exclusive is not None:
+            query = query.filter(StockPrice.timestamp < end_datetime_exclusive)
+
+        return query.order_by(
+            StockPrice.timestamp.asc(),
+            StockPrice.id.asc(),
+        ).limit(limit).all()
+
+    @staticmethod
     def get_by_stock_and_date_range(
         session: Session,
         stock_id: int,

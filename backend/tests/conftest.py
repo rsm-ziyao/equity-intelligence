@@ -6,6 +6,7 @@ from datetime import datetime
 import pytest
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy.pool import StaticPool
 
 from app.database.models import Base
 from app.marketdata.adapters.alphavantage import AlphaVantageAdapter
@@ -22,6 +23,7 @@ def test_db_engine():
     engine = create_engine(
         TEST_DATABASE_URL,
         connect_args={"check_same_thread": False},  # SQLite requirement
+        poolclass=StaticPool,  # Share the in-memory database with TestClient threads
     )
     
     # Enable foreign key constraints for SQLite
