@@ -13,10 +13,14 @@ export function useStock(symbol: string, startDate: string, endDate: string) {
   useEffect(() => {
     const controller = new AbortController()
     setLoading(true); setPricesLoading(true); setError(null); setPricesError(null); setStock(null); setPrices([])
-    Promise.all([fetchStock(symbol, controller.signal), fetchPrices(symbol, { startDate, endDate }, controller.signal)])
-      .then(([stockResponse, pricesResponse]) => { setStock(stockResponse.data); setPrices(pricesResponse.data) })
-      .catch((reason: unknown) => { if (reason instanceof DOMException && reason.name === 'AbortError') return; const message = reason instanceof Error ? reason.message : 'Unable to load this stock.'; setError(message); setPricesError(message) })
-      .finally(() => { if (!controller.signal.aborted) { setLoading(false); setPricesLoading(false) } })
+    fetchStock(symbol, controller.signal)
+      .then((response) => setStock(response.data))
+      .catch((reason: unknown) => { if (reason instanceof DOMException && reason.name === 'AbortError') return; setError(reason instanceof Error ? reason.message : 'Unable to load this stock.') })
+      .finally(() => { if (!controller.signal.aborted) setLoading(false) })
+    fetchPrices(symbol, { startDate, endDate }, controller.signal)
+      .then((response) => setPrices(response.data))
+      .catch((reason: unknown) => { if (reason instanceof DOMException && reason.name === 'AbortError') return; setPricesError(reason instanceof Error ? reason.message : 'Unable to load historical data.') })
+      .finally(() => { if (!controller.signal.aborted) setPricesLoading(false) })
     return () => controller.abort()
   }, [symbol, startDate, endDate])
 
