@@ -71,6 +71,26 @@ class FundamentalsRepository:
         return FundamentalsRepository.get_financial_history(session, stock_id, "annual", limit, provider)
 
     @staticmethod
+    def get_all_annual_periods(
+        session: Session, stock_id: int, provider: str = "alphavantage"
+    ) -> list[FinancialPeriod]:
+        return (
+            session.query(FinancialPeriod)
+            .options(
+                joinedload(FinancialPeriod.income_statement),
+                joinedload(FinancialPeriod.cash_flow),
+                joinedload(FinancialPeriod.balance_sheet),
+            )
+            .filter(
+                FinancialPeriod.stock_id == stock_id,
+                FinancialPeriod.provider == provider,
+                FinancialPeriod.fiscal_period_type == "annual",
+            )
+            .order_by(FinancialPeriod.period_end.desc(), FinancialPeriod.id.desc())
+            .all()
+        )
+
+    @staticmethod
     def get_latest_quarterly_periods(
         session: Session, stock_id: int, limit: int = 8, provider: str = "alphavantage"
     ) -> list[FinancialPeriod]:
