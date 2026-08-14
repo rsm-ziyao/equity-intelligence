@@ -141,6 +141,35 @@ VALUES (1, '2026-08-11 14:30:00', 150.0, 151.5, 149.5, 151.0, 1000000, 'alpha_va
 
 ## Initialization
 
+### Schema migrations
+
+Alembic is configured under `backend/alembic/` and uses the same
+`DATABASE_URL` (or `POSTGRES_*` fallback variables) as the application.
+
+For a fresh database:
+
+```bash
+cd backend
+alembic upgrade head
+```
+
+The initial revision, `0001_initial_schema`, represents the existing
+`stocks` and `stock_prices` schema only. It does not add fundamentals tables.
+
+The application still calls SQLAlchemy `create_all()` at startup for now.
+For an existing database that was already initialized with `create_all()`,
+mark the current schema as the baseline instead of running the create-table
+migration against populated tables:
+
+```bash
+cd backend
+alembic stamp head
+```
+
+`stamp` only records the Alembic revision and does not delete or rewrite
+application data. Future schema changes should be represented by new
+migrations and applied with `alembic upgrade head`.
+
 ### Starting PostgreSQL via Docker Compose
 
 ```bash

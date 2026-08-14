@@ -1,0 +1,4 @@
+import { useEffect, useState } from 'react'
+import { fetchFundamentals } from '../services/fundamentals'
+import type { FundamentalsResponse } from '../types/fundamentals'
+export function useFundamentals(symbol: string) { const [response, setResponse] = useState<FundamentalsResponse | null>(null), [loading, setLoading] = useState(true), [error, setError] = useState<string | null>(null); useEffect(() => { const controller = new AbortController(); setLoading(true); setError(null); setResponse(null); fetchFundamentals(symbol, controller.signal).then(setResponse).catch((reason: unknown) => { if (reason instanceof DOMException && reason.name === 'AbortError') return; setError(reason instanceof Error ? reason.message : 'Unable to load company fundamentals.') }).finally(() => { if (!controller.signal.aborted) setLoading(false) }); return () => controller.abort() }, [symbol]); return { data: response?.data ?? null, meta: response?.meta ?? null, loading, error } }

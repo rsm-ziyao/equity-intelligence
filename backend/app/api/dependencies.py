@@ -8,6 +8,7 @@ from ..database.connection import get_session
 from ..services.stock_service import StockService
 from ..quotes.service import QuoteService
 from ..quotes.adapters.finnhub import FinnhubQuoteAdapter
+from ..services.fundamentals_service import FundamentalsService
 
 _quote_service: QuoteService | None = None
 
@@ -18,6 +19,9 @@ def get_db_session() -> Generator[Session, None, None]:
 
 def get_stock_service() -> StockService:
     return StockService()
+
+def get_fundamentals_service() -> FundamentalsService:
+    return FundamentalsService()
 
 
 def get_quote_service() -> QuoteService:

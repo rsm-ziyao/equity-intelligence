@@ -10,6 +10,7 @@ from .api.exceptions import (
 from .api.routes.health import router as health_router
 from .api.routes.stocks import router as stocks_router
 from .api.routes.quotes import router as quotes_router
+from .api.routes.fundamentals import router as fundamentals_router
 
 app = FastAPI(
     title="Equity Intelligence Platform API",
@@ -21,6 +22,7 @@ app = FastAPI(
 app.include_router(health_router, prefix="/api/v1")
 app.include_router(stocks_router, prefix="/api/v1")
 app.include_router(quotes_router, prefix="/api/v1")
+app.include_router(fundamentals_router, prefix="/api/v1")
 
 
 @app.exception_handler(StockNotFoundError)
