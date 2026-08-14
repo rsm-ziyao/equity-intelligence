@@ -127,7 +127,7 @@ class IngestionService:
            - Try to create price record (skip if duplicate)
            - Count successes and skips
         """
-        stats = {"created": 0, "skipped": 0, "errors": 0}
+        stats = {"created": 0, "skipped": 0, "errors": 0, "no_data": False}
 
         try:
             bars: Iterable[Bar] = self.client.get_historical_daily(
@@ -137,6 +137,9 @@ class IngestionService:
             )
         except Exception as e:
             raise RuntimeError(f"Failed to fetch daily for {symbol}: {e}") from e
+
+        bars = list(bars)
+        stats["no_data"] = not bars
 
         # Ensure stock exists
         stock = StockRepository.get_or_create(session, symbol)
