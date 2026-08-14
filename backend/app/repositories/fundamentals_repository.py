@@ -1,5 +1,4 @@
 from __future__ import annotations
-from datetime import datetime
 from sqlalchemy.orm import Session, joinedload
 from ..database.models import BalanceSheetPeriod, CashFlowPeriod, FinancialPeriod, IncomeStatementPeriod
 from ..repositories.stock_repository import StockRepository
@@ -34,3 +33,45 @@ class FundamentalsRepository:
         query = session.query(FinancialPeriod).options(joinedload(FinancialPeriod.income_statement), joinedload(FinancialPeriod.cash_flow), joinedload(FinancialPeriod.balance_sheet)).filter_by(stock_id=stock_id)
         if period_type and period_type != "latest": query = query.filter_by(fiscal_period_type=period_type)
         return query.order_by(FinancialPeriod.period_end.desc(), FinancialPeriod.id.desc()).limit(limit if period_type and period_type != "latest" else 100).all()
+
+    @staticmethod
+    def get_financial_history(
+        session: Session,
+        stock_id: int,
+        period_type: str,
+        limit: int,
+        provider: str = "alphavantage",
+    ) -> list[FinancialPeriod]:
+        """Load persisted financial periods for trend calculations.
+
+        The newest rows are selected efficiently, while the service owns the
+        public oldest-to-newest ordering used by charts and API consumers.
+        """
+        query = (
+            session.query(FinancialPeriod)
+            .options(
+                joinedload(FinancialPeriod.income_statement),
+                joinedload(FinancialPeriod.cash_flow),
+                joinedload(FinancialPeriod.balance_sheet),
+            )
+            .filter(
+                FinancialPeriod.stock_id == stock_id,
+                FinancialPeriod.provider == provider,
+                FinancialPeriod.fiscal_period_type == period_type,
+            )
+            .order_by(FinancialPeriod.period_end.desc(), FinancialPeriod.id.desc())
+            .limit(limit)
+        )
+        return query.all()
+
+    @staticmethod
+    def get_latest_annual_periods(
+        session: Session, stock_id: int, limit: int = 8, provider: str = "alphavantage"
+    ) -> list[FinancialPeriod]:
+        return FundamentalsRepository.get_financial_history(session, stock_id, "annual", limit, provider)
+
+    @staticmethod
+    def get_latest_quarterly_periods(
+        session: Session, stock_id: int, limit: int = 8, provider: str = "alphavantage"
+    ) -> list[FinancialPeriod]:
+        return FundamentalsRepository.get_financial_history(session, stock_id, "quarterly", limit, provider)

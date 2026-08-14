@@ -4,38 +4,12 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 from ..api.exceptions import DatabaseUnavailableError, StockNotFoundError
 from ..repositories.fundamentals_repository import FundamentalsRepository
+from .financial_trend_service import FinancialTrendService
 
 class FundamentalsService:
     def __init__(self, client=None): self.client = client
     @staticmethod
-    def _divide(a, b): return a / b if a is not None and b not in (None, 0) else None
-    @staticmethod
-    def _payload(period):
-        income, cash, balance = period.income_statement, period.cash_flow, period.balance_sheet
-        revenue = income.revenue if income else None
-        free_cash_flow = (cash.operating_cash_flow - cash.capital_expenditures
-                          if cash and cash.operating_cash_flow is not None and cash.capital_expenditures is not None
-                          else None)
-        source = income or cash or balance
-        return {
-            "period_type": period.fiscal_period_type, "fiscal_year": period.fiscal_year,
-            "fiscal_quarter": period.fiscal_quarter, "period_start": period.period_start,
-            "period_end": period.period_end, "filing_date": period.filing_date,
-            "revenue": revenue, "gross_profit": income.gross_profit if income else None,
-            "operating_income": income.operating_income if income else None,
-            "net_income": income.net_income if income else None,
-            "diluted_eps": income.diluted_eps if income else None,
-            "operating_cash_flow": cash.operating_cash_flow if cash else None,
-            "capital_expenditures": cash.capital_expenditures if cash else None,
-            "free_cash_flow": free_cash_flow,
-            "cash_and_cash_equivalents": balance.cash_and_cash_equivalents if balance else None,
-            "total_debt": balance.total_debt if balance else None,
-            "gross_margin": FundamentalsService._divide(income.gross_profit if income else None, revenue),
-            "operating_margin": FundamentalsService._divide(income.operating_income if income else None, revenue),
-            "profit_margin": FundamentalsService._divide(income.net_income if income else None, revenue),
-            "currency": source.currency if source else None, "unit": source.unit if source else None,
-            "provider": period.provider, "retrieved_at": period.retrieved_at,
-        }
+    def _payload(period): return FinancialTrendService.period_payload(period)
     def get(self, session: Session, symbol: str, period_type: str = "latest") -> dict:
         normalized = symbol.upper()
         try:

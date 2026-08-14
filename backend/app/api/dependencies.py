@@ -9,6 +9,7 @@ from ..services.stock_service import StockService
 from ..quotes.service import QuoteService
 from ..quotes.adapters.finnhub import FinnhubQuoteAdapter
 from ..services.fundamentals_service import FundamentalsService
+from ..services.financial_trend_service import FinancialTrendService
 
 _quote_service: QuoteService | None = None
 
@@ -22,6 +23,9 @@ def get_stock_service() -> StockService:
 
 def get_fundamentals_service() -> FundamentalsService:
     return FundamentalsService()
+
+def get_financial_trend_service() -> FinancialTrendService:
+    return FinancialTrendService()
 
 
 def get_quote_service() -> QuoteService:

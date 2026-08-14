@@ -3,12 +3,32 @@ from datetime import datetime
 from typing import Any
 from .models import BalanceSheetRecord, CashFlowRecord, FinancialPeriod, IncomeStatementRecord, first, parse_date, parse_decimal
 
+def _integer(value: Any) -> int | None:
+    try:
+        return int(str(value).strip()) if value not in (None, "") else None
+    except (TypeError, ValueError):
+        return None
+
+def _provider_quarter(row: dict[str, Any]) -> int | None:
+    explicit = _integer(first(row, "fiscalQuarter", "fiscal_quarter"))
+    if explicit in {1, 2, 3, 4}:
+        return explicit
+    period = str(first(row, "fiscalPeriod", "fiscal_period") or "").upper()
+    if period.startswith("Q"):
+        quarter = _integer(period[1:])
+        if quarter in {1, 2, 3, 4}:
+            return quarter
+    return None
+
 def _period(row: dict[str, Any], symbol: str, provider: str, retrieved_at: datetime) -> FinancialPeriod | None:
     end = parse_date(first(row, "fiscalDateEnding", "period_end"))
     if end is None: return None
     kind = str(row.get("_period_type") or "quarterly").lower()
-    year = end.year
-    quarter = None if kind == "annual" else ((end.month - 1) // 3 + 1)
+    # Alpha Vantage commonly exposes fiscalDateEnding but not a reliable
+    # fiscal-quarter identity. Preserve explicit provider identity and leave
+    # the quarter unknown rather than silently converting calendar months.
+    year = _integer(first(row, "fiscalYear", "fiscal_year")) or end.year
+    quarter = None if kind == "annual" else _provider_quarter(row)
     return FinancialPeriod(symbol, provider, kind, year, quarter, parse_date(row.get("periodStart")), end, parse_date(first(row, "reportedDate", "filing_date")), first(row, "fiscalDateEnding", "provider_period_key"), parse_date(first(row, "reportedDate", "provider_effective_at")), retrieved_at)
 
 def normalize_rows(rows: list[dict[str, Any]], symbol: str, provider: str, kind: str, retrieved_at: datetime | None = None) -> list[Any]:

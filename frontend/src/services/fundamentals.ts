@@ -1,3 +1,4 @@
 import { ApiError, getJson } from './api'
-import type { FundamentalsResponse } from '../types/fundamentals'
+import type { FinancialHistoryResponse, FundamentalsResponse } from '../types/fundamentals'
 export function fetchFundamentals(symbol: string, signal?: AbortSignal) { return getJson<FundamentalsResponse>(`/stocks/${encodeURIComponent(symbol)}/fundamentals`, signal).then((response) => { if (!response || !response.meta || !('data' in response)) throw new ApiError('The backend returned an invalid fundamentals response.', 200); return response }) }
+export function fetchFundamentalsHistory(symbol: string, periodType: 'annual' | 'quarterly', limit = 8, signal?: AbortSignal) { return getJson<FinancialHistoryResponse>(`/stocks/${encodeURIComponent(symbol)}/fundamentals/history?period_type=${periodType}&limit=${limit}`, signal).then((response) => { if (!response || !response.meta || !('data' in response)) throw new ApiError('The backend returned an invalid fundamentals history response.', 200); return response }) }
