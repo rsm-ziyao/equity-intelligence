@@ -28,3 +28,4 @@ docker-compose.override.yml
 .vscode/
 .idea/
 *.swp
+frontend/dist/
